@@ -1,0 +1,18 @@
+# Self-hosted Gridfinity Extended web GUI.
+#
+# Build context is the repository root (so the Dockerfile can COPY combined/).
+# Deploy in Portainer: Stacks -> Add stack -> Repository, set the compose path
+# to web-gui/docker-compose.yml. Or locally: docker compose -f web-gui/docker-compose.yml up -d --build
+#
+# Then open  http://<nas-host>:8088/
+
+services:
+  gridfinity-webgui:
+    build:
+      context: ..
+      dockerfile: web-gui/Dockerfile
+    image: gridfinity-webgui:local
+    container_name: gridfinity-webgui
+    ports:
+      - "8088:80"
+    restart: unless-stopped

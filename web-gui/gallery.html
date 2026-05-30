@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gridfinity Extended — Model Picker</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+           margin: 0; padding: 2rem; background: #f5f5f7; color: #1d1d1f; }
+    @media (prefers-color-scheme: dark) { body { background: #15151a; color: #eaeaf0; } }
+    h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
+    p.sub { margin: 0 0 1.5rem; opacity: .7; font-size: .9rem; }
+    #grid { display: grid; gap: .75rem;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+    a.card { display: block; padding: 1rem 1.1rem; border-radius: 12px;
+             text-decoration: none; color: inherit; background: #fff;
+             border: 1px solid rgba(0,0,0,.1); transition: transform .08s, box-shadow .08s; }
+    @media (prefers-color-scheme: dark) { a.card { background: #232330; border-color: rgba(255,255,255,.08); } }
+    a.card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.15); }
+    a.card .name { font-weight: 600; font-size: 1.02rem; }
+    a.card .file { display: block; margin-top: .25rem; font-size: .78rem; opacity: .55; }
+    #msg { opacity: .7; }
+  </style>
+</head>
+<body>
+  <h1>Gridfinity Extended</h1>
+  <p class="sub">Pick a model to open it in the customizer. Adjust parameters, preview in 3D, then Export STL.</p>
+  <div id="msg">Loading models…</div>
+  <div id="grid"></div>
+
+  <script>
+    const nice = (f) => f.replace(/\.scad$/, '')
+      .replace(/^gridfinity[_-]?/, '')
+      .replace(/^stanley[_-]?/, 'Stanley ')
+      .replace(/[_-]+/g, ' ')
+      .replace(/\b\w/g, (c) => c.toUpperCase())
+      .trim() || f;
+
+    fetch('/models/')
+      .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then((items) => {
+        const origin = window.location.origin;
+        const scads = items
+          .filter((i) => i.name && i.name.endsWith('.scad'))
+          .sort((a, b) => a.name.localeCompare(b.name));
+        if (!scads.length) { document.getElementById('msg').textContent = 'No .scad models found in /models/.'; return; }
+        document.getElementById('msg').remove();
+        document.getElementById('grid').innerHTML = scads.map((i) => {
+          const url = origin + '/?' + origin + '/models/' + encodeURI(i.name);
+          return '<a class="card" href="' + url + '">' +
+                 '<span class="name">' + nice(i.name) + '</span>' +
+                 '<span class="file">' + i.name + '</span></a>';
+        }).join('');
+      })
+      .catch((e) => {
+        document.getElementById('msg').textContent =
+          'Could not load the model list (/models/): ' + e.message;
+      });
+  </script>
+</body>
+</html>
